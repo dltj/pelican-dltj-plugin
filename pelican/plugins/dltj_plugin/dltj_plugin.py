@@ -1,3 +1,12 @@
+"""Functions for the DLTJ blog that are specifit to how that blog operates.
+"""
+
+from datetime import datetime, timedelta
+from typing import Union
+
+from pelican import generators, signals
+
+
 def robustlink(
     href: str,
     versiondate: str,
@@ -6,6 +15,19 @@ def robustlink(
     originalurl: str = None,
     title: str = None,
 ) -> str:
+    """Output HTML of a robust link
+
+    Args:
+        href (str): URL to put in the main anchor tag
+        versiondate (str): date-string when the link was made (YYYY-MM-DD)
+        anchor (str): text to put inside the <a> anchor tag
+        versionurl (str, optional): URL to the archived version of the href. Defaults to None.
+        originalurl (str, optional): URL to the original page when href is the archive URL. Defaults to None.
+        title (str, optional): string put in the 'title' atribute of the anchor tag. Defaults to None.
+
+    Returns:
+        str: HTML fragment
+    """
     output: str = f'<a href="{ href }" '
     if versionurl:
         output += f'data-version-url="{versionurl}" '
@@ -18,9 +40,6 @@ def robustlink(
     return output
 
 
-# <!-- For handling https://robustlinks.mementoweb.org/ --><a href="{{ include.href }}" {% if include.versionurl %}data-versionurl="{{ include.versionurl }}"{% endif%}{% if include.originalurl %}data-originalurl="{{ include.originalurl }}"{% endif%} data-versiondate="{{ include.versiondate }}"{% if include.title %} title="{{ include.title }}"{% endif%}>{{ include.anchor }}</a>
-
-
 def image(
     div_float: str = None,
     width: str = None,
@@ -31,6 +50,21 @@ def image(
     ahref: str = None,
     localhref: str = None,
 ) -> str:
+    """Output HTML of an image inside a <figure> tag
+
+    Args:
+        div_float (str, optional): Float the figure 'left' or 'right'. Defaults to None.
+        width (str, optional): width of the figure tag. Defaults to None.
+        localsrc (str, optional): path to image file relative to `assets/images/`. Defaults to None.
+        abssrc (str, optional): absolue URL to image file. Defaults to None.
+        caption (str, optional): text placed below image. Defaults to None.
+        alt (str, optional): alternative text for the image. Defaults to None.
+        ahref (str, optional): absolute URL of an <a> tag around image. Defaults to None.
+        localhref (str, optional): path of <a> tag relative to blog root. Defaults to None.
+
+    Returns:
+        str: HTML fragment
+    """
     alt = alt or ""
     output: str = "<figure "
     if div_float:
@@ -62,6 +96,17 @@ def captioned(
     caption: str = None,
     contents: str = None,
 ) -> str:
+    """Output HTML of a captioned page element
+
+    Args:
+        div_float (str, optional): Float the figure 'left' or 'right'. Defaults to None.
+        width (str, optional): width of the figure tag. Defaults to None.
+        caption (str, optional): text placed below the figure. Defaults to None.
+        contents (str, optional): contents of the <figure> tag. Defaults to None.
+
+    Returns:
+        str: HTML fragment
+    """
     output: str = "<figure "
     if div_float:
         output += f'class="align-{div_float}" '
@@ -75,34 +120,8 @@ def captioned(
     return output
 
 
-# <!-- _based on https://stackoverflow.com/a/51682829 s/(  \s*)/\n\1/g to restore template spacing--><figure{%if include.float %} class="align-{{ include.float }}" {% endif %}{%if include.width %} style="width:{{ include.width }}px" {% endif %}>
-#     {% if include.url %}
-#     <a href="{{ include.url }}">
-#     {% endif %}
-#     {% if include.wpurl %}
-#     <a href="{{ site.url }}/wp-content/uploads/{{ include.wpurl }}">
-#     {% endif %}
-#     <img
-#         {% if include.width %}
-#             width="{{ include.width }}"
-#         {% endif %}
-#         {% if include.srcabs %}
-#             src="{{ include.srcabs }}"
-#         {% elsif include.wpsrc %}
-#             src="{{ site.url }}/wp-content/uploads/{{ include.wpsrc }}"
-#         {% else %}
-#             src="{{ site.url }}/assets/images/{{ include.src }}"
-#         {% endif %}
-#     alt="{{ include.alt }}">
-#     {% if include.url or include.wpurl %}
-#     </a>
-#     {% endif %}
-#     {% if include.caption %}
-#         <figcaption>{{ include.caption }}</figcaption>
-#     {% endif %}  </figure>
-
-
-def thursday_threads_header():
+def thursday_threads_header() -> str:
+    """Output the Thursday Threads header"""
     return """
 Feel free to send this newsletter to others you think might be interested in the topics.  If you are not already subscribed to <i>DLTJ's Thursday Threads</i>, visit the <a href="https://newsletter.dltj.org/" title="DLTJ Thursday Threads Newsletter Signup">sign-up page</a>.
 If you would like a more raw and immediate version of these types of stories, <a target="_blank" href="https://code4lib.social/@dltj">follow me on <span style="background-image: url('https://dltj.org/assets/images/mastodon_16.png'); background-repeat: no-repeat; padding-left: 18px;">Mastodon</span></a> where I post the bookmarks I save.  Comments and tips, as always, are welcome.
@@ -110,16 +129,32 @@ If you would like a more raw and immediate version of these types of stories, <a
 
 
 def thursday_threads_quote(
-    href: str = None,
-    blockquote: str = None,
+    href: str,
+    blockquote: str,
+    anchor: str,
     versiondate: str = None,
     versionurl: str = None,
     originalurl: str = None,
     title: str = None,
     pre: str = None,
-    anchor: str = None,
     post: str = None,
-):
+) -> str:
+    """Output HTML of a blockquote and a citation
+
+    Args:
+        href (str): Citation link.
+        blockquote (str): Contents of the quote.
+        anchor (str): Text inside the anchor
+        versiondate (str, optional): date-string when the link was made (YYYY-MM-DD)
+        versionurl (str, optional): URL to the archived version of the href. Defaults to None.
+        originalurl (str, optional): URL to the original page when href is the archive URL. Defaults to None.
+        title (str, optional): string put in the 'title' atribute of the anchor tag. Defaults to None.
+        pre (str, optional): Any text before the citation anchor
+        pre (str, optional): Any text after the citation anchor
+
+    Returns:
+        str: HTML fragment
+    """
     if href:
         source = f'<a href="{href}"'
         source += "" if versionurl is None else f' data-versionurl="{versionurl}"'
@@ -135,10 +170,46 @@ def thursday_threads_quote(
   <blockquote>
 { blockquote }
   </blockquote>
-  <figcaption>&mdash;{ pre }{ anchor }{ post }</figcaption>
+  <figcaption>&mdash;{ pre or '' }{ source }{ post or '' }</figcaption>
 </figure>
 """
 
 
 def note(note_text: str = None) -> str:
+    """Wrap text of a note with the appropriate class attributes
+
+    Args:
+        note_text (str, optional): string to insert into the note. Defaults to None.
+
+    Returns:
+        str: _description_
+    """
     return f'<p class="dltj-note"><strong>Note!</strong> {note_text}</p>'
+
+
+def remove_recent_last_modified(generator: generators.ArticlesGenerator) -> None:
+    """Remove last modified attribute for articles modified shortly after publication
+
+    Args:
+        generator (Generator): Pelican generator
+    """
+    for article in generator.articles:
+        if hasattr(article, "modified"):
+            modified: Union[datetime, str] = article.modified
+            date: Union[datetime, str] = article.date
+
+            # Convert from string to datetime if needed
+            if isinstance(modified, str):
+                modified = datetime.strptime(modified, "%Y-%m-%d %H:%M")
+            if isinstance(date, str):
+                date = datetime.strptime(date, "%Y-%m-%d %H:%M")
+
+            # Remove 'modified' attribute if modified within 2 days of posting
+            if isinstance(modified, datetime) and isinstance(date, datetime):
+                if modified - date <= timedelta(days=2):
+                    delattr(article, "modified")  # Remove 'modified' if within 2 days
+
+
+def register() -> None:
+    """Register Pelican signals for this plugin"""
+    signals.article_generator_pretaxonomy.connect(remove_recent_last_modified)
