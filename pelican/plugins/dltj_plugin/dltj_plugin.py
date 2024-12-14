@@ -30,7 +30,7 @@ def robustlink(
     """
     output: str = f'<a href="{ href }" '
     if versionurl:
-        output += f'data-version-url="{versionurl}" '
+        output += f'data-versionurl="{versionurl}" '
     if originalurl:
         output += f'data-originalurl="{originalurl}" '
     output += f'data-versiondate="{versiondate}" '
